@@ -55,6 +55,18 @@ python scripts/make_commonvoice_manifest.py --root "/chemin/vers/corpus/fr" --ts
 python scripts/check_manifest.py manifests/stt_fr.csv
 ```
 
+Pour exploiter les splits officiels Common Voice (recommandé), crée plutôt les trois manifestes :
+
+```bash
+python scripts/make_commonvoice_splits.py --root "data/tshiluba" --output-dir manifests/tshiluba
+python scripts/check_manifest.py manifests/tshiluba/train.csv
+python scripts/check_manifest.py manifests/tshiluba/dev.csv
+python src/train_stt.py --manifest manifests/tshiluba/train.csv --val-manifest manifests/tshiluba/dev.csv --out checkpoints/stt_tshiluba
+python src/evaluate_stt.py --checkpoint checkpoints/stt_tshiluba/best.pt --manifest manifests/tshiluba/test.csv
+```
+
+`--limit` sur le script de conversion et `--limit-train` / `--limit-val` sur l'entraînement permettent de faire un essai court avant d'utiliser tout le corpus. Les caractéristiques audio sont conservées dans `data/cache/stt` et réutilisées aux lancements suivants.
+
 Le script lit `clips/` et les colonnes `path` et `sentence`. Il peut filtrer un locuteur avec `--speaker IDENTIFIANT`.
 
 ### Pour le TTS

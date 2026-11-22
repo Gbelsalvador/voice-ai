@@ -47,24 +47,39 @@ def run_epoch(model, loader, criterion, optimizer, device, train: bool):
 def main():
     p = argparse.ArgumentParser(description="Entraîner un STT CTC depuis une initialisation aléatoire.")
     p.add_argument("--manifest", required=True, help="CSV avec colonnes audio,text")
+    p.add_argument("--val-manifest", help="Manifest de validation séparé (ex. Common Voice dev.csv)")
     p.add_argument("--out", default="checkpoints/stt")
     p.add_argument("--epochs", type=int, default=40)
     p.add_argument("--batch-size", type=int, default=8)
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--workers", type=int, default=0)
+    p.add_argument("--cache-dir", default="data/cache/stt", help="Cache des caractéristiques audio; réutilisé entre les lancements")
+    p.add_argument("--limit-train", type=int, default=0, help="Limiter les exemples pour un essai rapide; 0 = tous")
+    p.add_argument("--limit-val", type=int, default=0, help="Limiter la validation; 0 = tous")
     args = p.parse_args()
 
     set_seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if args.limit_train < 0 or args.limit_val < 0:
+        p.error("Les limites doivent être positives ou nulles")
     rows = read_manifest(args.manifest)
-    train_rows, val_rows = split_rows(rows, seed=args.seed)
+    if args.limit_train:
+        rows = rows[:args.limit_train]
+    if args.val_manifest:
+        train_rows, val_rows = rows, read_manifest(args.val_manifest)
+        if args.limit_val:
+            val_rows = val_rows[:args.limit_val]
+    else:
+        train_rows, val_rows = split_rows(rows, seed=args.seed)
+    if not train_rows or not val_rows:
+        p.error("Les ensembles train et validation doivent contenir au moins un exemple")
     vocab = build_vocab((r["text"] for r in train_rows), "stt")
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     save_vocab(vocab, out / "vocab.json")
-    train_ds = SpeechDataset(train_rows, vocab, "stt")
-    val_ds = SpeechDataset(val_rows, vocab, "stt")
+    train_ds = SpeechDataset(train_rows, vocab, "stt", cache_dir=args.cache_dir)
+    val_ds = SpeechDataset(val_rows, vocab, "stt", cache_dir=args.cache_dir)
     train_dl = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=args.workers, collate_fn=collate)
     val_dl = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, collate_fn=collate)
 
