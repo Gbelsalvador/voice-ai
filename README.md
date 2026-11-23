@@ -171,7 +171,7 @@ $env:STT_CHECKPOINT="checkpoints/stt_fr/best.pt"
 uvicorn src.api:app --reload
 ```
 
-Ouvre `http://127.0.0.1:8000/docs`, puis envoie un fichier audio compatible avec SoundFile à `POST /stt/transcribe`. La réponse contient la transcription dans le champ `text`. `GET /health` indique si le checkpoint a bien été chargé. Le checkpoint TTS n'étant pas présent dans le projet actuellement, cette API expose la transcription STT.
+Ouvre `http://127.0.0.1:8000` pour utiliser l'interface web : elle permet de choisir ou déposer un audio, de l'écouter et d'afficher la transcription. La documentation interactive de l'API reste disponible sur `http://127.0.0.1:8000/docs`. Le checkpoint TTS n'étant pas présent dans le projet actuellement, cette API expose la transcription STT.
 ## 5. Conseils d'entraînement et ressources matérielles
 
 - Commence avec un petit sous-ensemble pour vérifier que le pipeline fonctionne, puis augmente progressivement.

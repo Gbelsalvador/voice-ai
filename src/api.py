@@ -9,6 +9,7 @@ import numpy as np
 import soundfile as sf
 import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 try:  # Supporte `uvicorn src.api:app` et `python src/api.py`.
@@ -25,6 +26,7 @@ if not CHECKPOINT_PATH.is_absolute():
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 app = FastAPI(title="Voice AI API", version="1.0.0")
+WEB_PAGE = Path(__file__).resolve().parent / "static" / "index.html"
 
 
 class HealthResponse(BaseModel):
@@ -35,6 +37,11 @@ class HealthResponse(BaseModel):
 
 class TranscriptionResponse(BaseModel):
     text: str
+
+
+@app.get("/", include_in_schema=False)
+def web_interface():
+    return FileResponse(WEB_PAGE)
 
 
 def load_model():
