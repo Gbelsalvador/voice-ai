@@ -11,7 +11,10 @@ import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from stt_model import STTModel
+try:  # Supporte `uvicorn src.api:app` et `python src/api.py`.
+    from .stt_model import STTModel
+except ImportError:  # pragma: no cover - chemin d'exécution directe
+    from stt_model import STTModel
 
 
 ROOT = Path(__file__).resolve().parent.parent
