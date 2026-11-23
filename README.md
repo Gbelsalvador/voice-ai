@@ -155,6 +155,23 @@ python src/infer_tts.py --checkpoint checkpoints/tts_fr/best.pt --text "bonjour,
 
 Le résultat se trouve dans `generated.wav`. Au début, le modèle peut prononcer incorrectement, répéter des sons ou s'arrêter trop tôt. C'est normal avec un petit corpus et une architecture pédagogique. Il faut observer la loss de validation, écouter plusieurs phrases jamais vues et augmenter la taille/qualité du corpus avant de conclure.
 
+### Tester le modèle STT avec l'API FastAPI
+
+Installe les dépendances puis démarre le serveur depuis la racine du projet :
+
+```bash
+pip install -r requirements.txt
+uvicorn src.api:app --reload
+```
+
+Par défaut, l'API charge `checkpoints/stt_tshiluba/best.pt`. Pour utiliser un autre checkpoint :
+
+```powershell
+$env:STT_CHECKPOINT="checkpoints/stt_fr/best.pt"
+uvicorn src.api:app --reload
+```
+
+Ouvre `http://127.0.0.1:8000/docs`, puis envoie un fichier audio compatible avec SoundFile à `POST /stt/transcribe`. La réponse contient la transcription dans le champ `text`. `GET /health` indique si le checkpoint a bien été chargé. Le checkpoint TTS n'étant pas présent dans le projet actuellement, cette API expose la transcription STT.
 ## 5. Conseils d'entraînement et ressources matérielles
 
 - Commence avec un petit sous-ensemble pour vérifier que le pipeline fonctionne, puis augmente progressivement.
